@@ -25,7 +25,7 @@ src/
   format.ts                Intl wrappers driven by hass.locale / hass.config
   ha-types.ts              slice of `hass` used; config defaults and clamps
   i18n/                    en.json + others
-dist/open-tides-card.js    build output; gitignored, attached to releases by CI
+dist/open-tides-card.js    build output; committed (HACS needs it in-tree), CI checks it matches src
 tests/                     vitest unit tests for parsing, derivations, geometry, formatting
 demo/index.html            standalone preview with stubbed HA elements
 hacs.json                  { "name": "Open Tides Card", "render_readme": true, "filename": "open-tides-card.js" }

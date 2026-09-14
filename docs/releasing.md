@@ -1,8 +1,10 @@
 # Releasing
 
 HACS installs the file attached to the latest GitHub release, named by
-`filename` in `hacs.json` (`open-tides-card.js`). `dist/` is gitignored;
-the release workflow builds it fresh and attaches it.
+`filename` in `hacs.json` (`open-tides-card.js`). `dist/open-tides-card.js`
+is also committed: HACS validation on every push requires the file to be
+in the tree, and CI fails if it doesn't match a fresh build of the source.
+Run `npm run build` and commit `dist/` with any source change.
 
 1. Update `CHANGELOG.md`.
 2. Bump `version` in `package.json` on a branch, PR, merge.
