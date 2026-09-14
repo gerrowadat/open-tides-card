@@ -1,0 +1,41 @@
+{
+  "state": {
+    "rising": "Rising",
+    "falling": "Falling",
+    "unknown": "Unknown"
+  },
+  "high": "High",
+  "low": "Low",
+  "next_high": "Next high",
+  "next_low": "Next low",
+  "in": "in {duration}",
+  "ago": "{duration} ago",
+  "at": "at {time}",
+  "now": "now",
+  "approximate": "Approximate: interpolated between high and low, not provider data",
+  "no_forecast": "No forecast available",
+  "no_upcoming": "No upcoming tides in the forecast",
+  "stale": "Forecast last updated {ago}; the integration may not have refreshed",
+  "datum": "Heights relative to {datum}",
+  "errors": {
+    "no_entity": "Set an entity",
+    "not_found": "Entity not found: {entity}",
+    "unavailable": "{entity} is unavailable"
+  },
+  "editor": {
+    "entity": "Tide sensor",
+    "name": "Name",
+    "name_helper": "Overrides the station name in the header",
+    "hours_ahead": "Hours ahead",
+    "hours_back": "Hours back",
+    "hours_helper": "The sensor carries 48 h of forecast",
+    "show_header": "Show header",
+    "show_curve": "Show curve",
+    "show_events": "Show high/low list",
+    "events_count": "Events to list",
+    "height_unit": "Height unit",
+    "unit_auto": "Follow Home Assistant",
+    "unit_m": "Metres",
+    "unit_ft": "Feet"
+  }
+}

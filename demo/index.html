@@ -1,0 +1,148 @@
+<!doctype html>
+<!--
+  Standalone preview of the card outside Home Assistant. Stubs the few HA
+  elements the card uses (ha-card, ha-icon, ha-alert) and feeds it a fake
+  `hass` with fixture data. Serve with `npm run dev` and open
+  http://localhost:5173/demo/ — or `npm run build` and open this file over
+  any static server (it loads ../dist/open-tides-card.js when built).
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>open-tides-card demo</title>
+  <style>
+    :root {
+      --primary-color: #03a9f4;
+      --primary-text-color: #212121;
+      --secondary-text-color: #727272;
+      --card-background-color: #fff;
+      --divider-color: rgba(0, 0, 0, 0.12);
+      --ha-card-border-radius: 12px;
+      --error-color: #db4437;
+      --warning-color: #ffa600;
+      --info-color: #4a90d9;
+    }
+    body.dark {
+      --primary-color: #4dd0e1;
+      --primary-text-color: #e1e1e1;
+      --secondary-text-color: #9b9b9b;
+      --card-background-color: #1c1c1c;
+      --divider-color: rgba(255, 255, 255, 0.12);
+      background: #111;
+    }
+    body { font-family: Roboto, system-ui, sans-serif; background: #f2f4f6; margin: 0; padding: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; max-width: 1100px; }
+    h3 { margin: 0 0 6px; font: 500 12px/1 system-ui; color: var(--secondary-text-color); text-transform: uppercase; }
+    ha-card { display: block; background: var(--card-background-color); border-radius: var(--ha-card-border-radius); box-shadow: 0 1px 3px rgba(0,0,0,.2); color: var(--primary-text-color); }
+    ha-alert { display: block; color: var(--primary-text-color); padding: 8px 12px; border-radius: 4px; font-size: 14px; background: color-mix(in srgb, var(--alert-color, var(--info-color)) 15%, transparent); border-left: 4px solid var(--alert-color, var(--info-color)); }
+    ha-alert[alert-type="error"] { --alert-color: var(--error-color); }
+    ha-alert[alert-type="warning"] { --alert-color: var(--warning-color); }
+    ha-icon { display: inline-block; width: var(--mdc-icon-size, 24px); height: var(--mdc-icon-size, 24px); vertical-align: middle; }
+    ha-icon::before { content: attr(data-glyph); font-size: var(--mdc-icon-size, 24px); line-height: 1; }
+    button { position: fixed; top: 8px; right: 8px; }
+  </style>
+</head>
+<body>
+  <button onclick="document.body.classList.toggle('dark')">theme</button>
+  <div class="grid" id="grid"></div>
+
+  <script type="module">
+    // Minimal stand-ins for HA elements. Real HA supplies these.
+    class HaCard extends HTMLElement {}
+    class HaAlert extends HTMLElement {}
+    class HaIcon extends HTMLElement {
+      static get observedAttributes() { return ["icon"]; }
+      attributeChangedCallback() {
+        const g = { "mdi:wave-arrow-up": "↗", "mdi:wave-arrow-down": "↘", "mdi:wave": "〜",
+                    "mdi:arrow-up-thin": "↑", "mdi:arrow-down-thin": "↓" };
+        this.dataset.glyph = g[this.getAttribute("icon")] ?? "?";
+      }
+    }
+    customElements.define("ha-card", HaCard);
+    customElements.define("ha-alert", HaAlert);
+    customElements.define("ha-icon", HaIcon);
+
+    const src = new URL(window.location).searchParams.get("built")
+      ? "../dist/open-tides-card.js"
+      : "../src/open-tides-card.ts";
+    await import(src);
+
+    // ---- fixture data -----------------------------------------------------
+    const H = 3_600_000, M = 60_000;
+    const now = Date.now();
+    const firstHigh = now + 4 * H + 12 * M;
+    const spacing = 6 * H + 12 * M;
+    const events = Array.from({ length: 8 }, (_, i) => {
+      const high = i % 2 === 0;
+      return {
+        time: new Date(firstHigh + i * spacing).toISOString(),
+        height: high ? 4.1 - (i % 4) * 0.05 : 0.6 + (i % 4) * 0.05,
+        type: high ? "high" : "low",
+      };
+    });
+    const ev = events.map((e) => ({ t: Date.parse(e.time), h: e.height }));
+    const curve = [];
+    for (let t = now - 6 * H; t <= now + 48 * H; t += 20 * M) {
+      let i = 0;
+      while (i < ev.length - 2 && ev[i + 1].t < t) i++;
+      let a = ev[i], b = ev[i + 1];
+      if (t < a.t) { b = a; a = { t: a.t - spacing, h: 0.6 }; }
+      const f = (t - a.t) / (b.t - a.t);
+      curve.push([new Date(t).toISOString(), +(((a.h + b.h) / 2) + ((a.h - b.h) / 2) * Math.cos(Math.PI * f)).toFixed(3)]);
+    }
+    const base = {
+      datum: "LAT", provider: "marine_ie", station: "Dublin Port",
+      attribution: "Tide predictions © Marine Institute, Ireland",
+      licence: "CC-BY-4.0", licence_url: "https://creativecommons.org/licenses/by/4.0/",
+      events,
+    };
+    const upd = new Date(now).toISOString();
+    const hass = {
+      locale: { language: "en-GB", time_format: "24", time_zone: "server" },
+      config: { time_zone: "Europe/Dublin", unit_system: { length: "km" } },
+      states: {
+        "sensor.dublin_port_tide": { state: "rising", attributes: { ...base, curve }, last_updated: upd },
+        "sensor.howth_tide": { state: "rising", attributes: base, last_updated: upd },
+        "sensor.stale_tide": {
+          state: "rising",
+          attributes: { ...base, station: "Stale Harbour",
+            events: events.map((e) => ({ ...e, time: new Date(Date.parse(e.time) - 60 * H).toISOString() })) },
+          last_updated: new Date(now - 60 * H).toISOString(),
+        },
+        "sensor.broken_tide": {
+          state: "rising",
+          attributes: { ...base, station: "Broken Bay", events: [...events, { time: "yesterday", height: "tall", type: "slack" }], curve: "no" },
+          last_updated: upd,
+        },
+        "sensor.empty_tide": { state: "unknown", attributes: { ...base, station: "Empty Cove", events: [] }, last_updated: upd },
+      },
+    };
+    const imperial = { ...hass, config: { ...hass.config, unit_system: { length: "mi" } },
+                       locale: { language: "en-US", time_format: "12", time_zone: "server" } };
+
+    const cases = [
+      ["Full: curve + events", { entity: "sensor.dublin_port_tide" }],
+      ["No curve (cosine, dashed)", { entity: "sensor.howth_tide", name: "Howth" }],
+      ["Imperial, 12h", { entity: "sensor.dublin_port_tide", hours_ahead: 24 }, imperial],
+      ["Header only", { entity: "sensor.dublin_port_tide", show_curve: false, show_events: false }],
+      ["Curve only, 48h", { entity: "sensor.dublin_port_tide", show_header: false, show_events: false, hours_ahead: 48 }],
+      ["Stale (no upcoming)", { entity: "sensor.stale_tide" }],
+      ["Malformed attributes", { entity: "sensor.broken_tide", events_count: 2 }],
+      ["No events", { entity: "sensor.empty_tide" }],
+      ["Entity missing", { entity: "sensor.nope_tide" }],
+      ["No entity set", {}],
+    ];
+    const grid = document.getElementById("grid");
+    for (const [title, cfg, h = hass] of cases) {
+      const wrap = document.createElement("div");
+      wrap.innerHTML = `<h3>${title}</h3>`;
+      const card = document.createElement("open-tides-card");
+      card.setConfig({ type: "custom:open-tides-card", ...cfg });
+      card.hass = h;
+      wrap.appendChild(card);
+      grid.appendChild(wrap);
+    }
+    window.__cards = document.querySelectorAll("open-tides-card");
+  </script>
+</body>
+</html>

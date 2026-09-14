@@ -18,13 +18,17 @@ consumes or how it's configured.
 ```
 src/
   open-tides-card.ts       card element (Lit)
-  editor.ts                visual config editor
-  chart.ts                 SVG curve rendering (no chart library)
-  contract.ts              TS types mirroring open_tides attribute shape
+  editor.ts                visual config editor (ha-form schema)
+  chart.ts                 SVG geometry, pure (no chart library, no DOM)
+  tide.ts                  state / next event / interpolation, pure
+  contract.ts              TS types mirroring open_tides attribute shape + parser
+  format.ts                Intl wrappers driven by hass.locale / hass.config
+  ha-types.ts              slice of `hass` used; config defaults and clamps
   i18n/                    en.json + others
-dist/open-tides-card.js    build output, committed on release only
-tests/                     vitest unit tests for parsing + geometry
-hacs.json                  { "name": "Open Tides Card", "render_readme": true }
+dist/open-tides-card.js    build output; gitignored, attached to releases by CI
+tests/                     vitest unit tests for parsing, derivations, geometry, formatting
+demo/index.html            standalone preview with stubbed HA elements
+hacs.json                  { "name": "Open Tides Card", "render_readme": true, "filename": "open-tides-card.js" }
 ```
 
 ## Non-negotiables
@@ -61,6 +65,10 @@ npm run dev
 npm test
 npm run build
 ```
+
+No Node on the dev host: prefix with
+`docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$PWD":/app -w /app node:22`.
+See docs/development.md.
 
 ## Things to avoid
 
