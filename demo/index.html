@@ -33,12 +33,6 @@
     body { font-family: Roboto, system-ui, sans-serif; background: #f2f4f6; margin: 0; padding: 16px; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; max-width: 1100px; }
     h3 { margin: 0 0 6px; font: 500 12px/1 system-ui; color: var(--secondary-text-color); text-transform: uppercase; }
-    ha-card { display: block; background: var(--card-background-color); border-radius: var(--ha-card-border-radius); box-shadow: 0 1px 3px rgba(0,0,0,.2); color: var(--primary-text-color); }
-    ha-alert { display: block; color: var(--primary-text-color); padding: 8px 12px; border-radius: 4px; font-size: 14px; background: color-mix(in srgb, var(--alert-color, var(--info-color)) 15%, transparent); border-left: 4px solid var(--alert-color, var(--info-color)); }
-    ha-alert[alert-type="error"] { --alert-color: var(--error-color); }
-    ha-alert[alert-type="warning"] { --alert-color: var(--warning-color); }
-    ha-icon { display: inline-block; width: var(--mdc-icon-size, 24px); height: var(--mdc-icon-size, 24px); vertical-align: middle; }
-    ha-icon::before { content: attr(data-glyph); font-size: var(--mdc-icon-size, 24px); line-height: 1; }
     button { position: fixed; top: 8px; right: 8px; }
   </style>
 </head>
@@ -48,14 +42,28 @@
 
   <script type="module">
     // Minimal stand-ins for HA elements. Real HA supplies these.
-    class HaCard extends HTMLElement {}
-    class HaAlert extends HTMLElement {}
-    class HaIcon extends HTMLElement {
+    // The card renders these inside its shadow root, so they must carry their
+    // own styles like the real elements do; document CSS doesn't reach them.
+    const shadowed = (cssText) => class extends HTMLElement {
+      constructor() { super(); this.attachShadow({ mode: "open" }).innerHTML = `<style>${cssText}</style><slot></slot>`; }
+    };
+    class HaCard extends shadowed(`:host { display: block; background: var(--card-background-color); border-radius: var(--ha-card-border-radius, 12px); box-shadow: 0 1px 3px rgba(0,0,0,.2); color: var(--primary-text-color); }`) {}
+    class HaAlert extends shadowed(`:host { display: block; padding: 8px 12px; border-radius: 4px; font-size: 14px; color: var(--primary-text-color); background: color-mix(in srgb, var(--alert-color, var(--info-color)) 15%, transparent); border-left: 4px solid var(--alert-color, var(--info-color)); }
+      :host([alert-type="error"]) { --alert-color: var(--error-color); } :host([alert-type="warning"]) { --alert-color: var(--warning-color); }`) {}
+    // Path data from @mdi/svg 7.4.47 (Apache-2.0), only the icons the card uses.
+    const MDI = {
+      "mdi:wave-arrow-up": "M20 7H22V9H20C18.62 9 17.26 8.65 16 8C13.5 9.3 10.5 9.3 8 8C6.74 8.65 5.37 9 4 9H2V7H4C5.39 7 6.78 6.53 8 5.67C10.44 7.38 13.56 7.38 16 5.67C17.22 6.53 18.61 7 20 7M12 11L16 15H13V22H11V15H8L12 11Z",
+      "mdi:wave-arrow-down": "M20 7H22V9H20C18.62 9 17.26 8.65 16 8C13.5 9.3 10.5 9.3 8 8C6.74 8.65 5.37 9 4 9H2V7H4C5.39 7 6.78 6.53 8 5.67C10.44 7.38 13.56 7.38 16 5.67C17.22 6.53 18.61 7 20 7M12 22L8 18H11V11H13V18H16L12 22Z",
+      "mdi:wave": "M20,12C18.61,12 17.22,11.53 16,10.67C13.56,12.38 10.44,12.38 8,10.67C6.78,11.53 5.39,12 4,12H2V14H4C5.37,14 6.74,13.65 8,13C10.5,14.3 13.5,14.3 16,13C17.26,13.65 18.62,14 20,14H22V12",
+      "mdi:arrow-up-thin": "M7.03 9.97H11.03V18.89L13.04 18.92V9.97H17.03L12.03 4.97Z",
+      "mdi:arrow-down-thin": "M7.03 13.92H11.03V5L13.04 4.97V13.92H17.03L12.03 18.92Z",
+    };
+    class HaIcon extends shadowed(`:host { display: inline-flex; width: var(--mdc-icon-size, 24px); height: var(--mdc-icon-size, 24px); vertical-align: middle; } svg { width: 100%; height: 100%; fill: currentColor; }`) {
       static get observedAttributes() { return ["icon"]; }
       attributeChangedCallback() {
-        const g = { "mdi:wave-arrow-up": "↗", "mdi:wave-arrow-down": "↘", "mdi:wave": "〜",
-                    "mdi:arrow-up-thin": "↑", "mdi:arrow-down-thin": "↓" };
-        this.dataset.glyph = g[this.getAttribute("icon")] ?? "?";
+        const d = MDI[this.getAttribute("icon")];
+        this.shadowRoot.querySelector("svg, slot").replaceWith(
+          d ? Object.assign(document.createElement("template"), { innerHTML: `<svg viewBox="0 0 24 24"><path d="${d}"/></svg>` }).content : document.createTextNode("?"));
       }
     }
     customElements.define("ha-card", HaCard);

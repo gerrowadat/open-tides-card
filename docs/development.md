@@ -44,8 +44,14 @@ current time, and renders ten configurations: full, no curve, imperial /
 no entity. A button toggles a dark palette. Add `?built=1` to load
 `dist/open-tides-card.js` instead of the source.
 
-The stubs are crude — `ha-icon` renders an arrow glyph, `ha-alert` is a
-coloured box — so check icon and alert styling in real HA before release.
+The stubs carry their own shadow-DOM styles (the card renders them inside
+its shadow root, where document CSS can't reach) and `ha-icon` draws the
+real MDI paths for the five icons the card uses. They're still stand-ins;
+check icon and alert styling in real HA before release.
+
+The README screenshots (`docs/images/card-*.png`) are the first demo card
+captured at 440 px wide, 2× scale, light and dark. Regenerate them after
+any visual change.
 
 ## Preview in Home Assistant
 
