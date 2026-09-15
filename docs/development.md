@@ -46,12 +46,15 @@ no entity. A button toggles a dark palette. Add `?built=1` to load
 
 The stubs carry their own shadow-DOM styles (the card renders them inside
 its shadow root, where document CSS can't reach) and `ha-icon` draws the
-real MDI paths for the five icons the card uses. They're still stand-ins;
-check icon and alert styling in real HA before release.
+real MDI paths for the five icons the card uses. They're stand-ins, but
+the card has been checked against a live HA install and they match well
+enough to catch layout regressions; still confirm anything that touches
+icons or alerts in real HA.
 
-The README screenshots (`docs/images/card-*.png`) are the first demo card
-captured at 440 px wide, 2× scale, light and dark. Regenerate them after
-any visual change.
+The README screenshots (`docs/images/card-*.png`) are the "with extras"
+demo card captured at 440 px wide, 2× scale, light and dark. Regenerate
+them after any visual change, or replace them with a capture from a real
+dashboard.
 
 ## Preview in Home Assistant
 

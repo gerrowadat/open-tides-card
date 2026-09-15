@@ -8,10 +8,14 @@ low, a height curve for the next day or two, and the list of upcoming tides.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/card-dark.png">
-  <img src="docs/images/card-light.png" alt="Open Tides Card showing Dublin Port: rising, next high 4.1 m in 4h 12m, a tide curve for the next 36 hours with highs and lows marked, and a list of the next four tides" width="420">
+  <img src="docs/images/card-light.png" alt="Open Tides Card showing Dublin Port: rising, next high 4.1 m in 4h 12m; range, rate, next spring and neap stats; a tide curve for the next 36 hours with highs and lows marked; and a list of the next four tides" width="420">
 </picture>
 
-Status: alpha, tracking open-tides 0.2. Not yet exercised on a live install.
+*Rendered from the bundled demo page with fixture data; in Home Assistant it
+takes your theme.*
+
+Status: early but working. Runs against open-tides 0.3 on a live Home
+Assistant install; the extras need 0.3, everything else works with 0.2.
 
 ## Install
 
