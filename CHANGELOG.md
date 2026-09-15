@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 — 2026-09-15
+
+Tracks open-tides 0.3.0.
 
 - `extras` option: show `range`, `rate`, `next_spring`, `next_neap` from
   the sibling sensors open-tides 0.3.0 adds. Opt-in, multi-select in the
