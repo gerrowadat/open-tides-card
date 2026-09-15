@@ -123,6 +123,11 @@
           last_updated: upd,
         },
         "sensor.empty_tide": { state: "unknown", attributes: { ...base, station: "Empty Cove", events: [] }, last_updated: upd },
+        // open_tides ≥ 0.3.0 siblings
+        "sensor.dublin_port_range": { state: "3.45", attributes: { unit_of_measurement: "m", horizon_max: 4.21, horizon_min: 1.87 }, last_updated: upd },
+        "sensor.dublin_port_rate": { state: "0.612", attributes: { unit_of_measurement: "m/h" }, last_updated: upd },
+        "sensor.dublin_port_next_spring": { state: new Date(now + 76 * H).toISOString(), attributes: { range: 4.21, height: 4.4 }, last_updated: upd },
+        "sensor.dublin_port_next_neap": { state: new Date(now + 240 * H).toISOString(), attributes: { range: 1.87, height: 3.1 }, last_updated: upd },
       },
     };
     const imperial = { ...hass, config: { ...hass.config, unit_system: { length: "mi" } },
@@ -130,6 +135,8 @@
 
     const cases = [
       ["Full: curve + events", { entity: "sensor.dublin_port_tide" }],
+      ["With extras (0.3.0 siblings)", { entity: "sensor.dublin_port_tide", extras: ["range", "rate", "next_spring", "next_neap"] }],
+      ["Extras, imperial, no siblings for Howth", { entity: "sensor.howth_tide", extras: ["range", "rate"], show_curve: false }, imperial],
       ["No curve (cosine, dashed)", { entity: "sensor.howth_tide", name: "Howth" }],
       ["Imperial, 12h", { entity: "sensor.dublin_port_tide", hours_ahead: 24 }, imperial],
       ["Header only", { entity: "sensor.dublin_port_tide", show_curve: false, show_events: false }],

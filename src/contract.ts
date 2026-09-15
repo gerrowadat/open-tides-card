@@ -20,6 +20,10 @@
  *
  * There is no version field; the card validates structure instead and
  * reports anything it had to drop via `warnings`.
+ *
+ * Sibling entities (`sensor.<name>_range`, `_rate`, `_next_spring`,
+ * `_next_neap`; open-tides ≥ 0.3.0) are plain sensors read by `extras.ts`;
+ * they are not part of this attribute contract.
  */
 
 export type TideKind = "high" | "low";

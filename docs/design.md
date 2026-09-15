@@ -74,6 +74,19 @@ Three stacked regions, all optional via config:
    weekday instead of time; thins to 12 h / 24 h when the plot is too
    narrow for the labels. Y ticks on 1/2/5 steps. Width comes from a
    `ResizeObserver`; height is fixed at 150 px.
+2b. **Extras** (opt-in, between header and curve) — a wrapping row of
+   label/value/sub stats read from the sibling entities open-tides 0.3.0
+   creates: `range` (state + `horizon_min`/`horizon_max` attrs), `rate`
+   (m/h, sign → arrow), `next_spring` / `next_neap` (timestamp + `range`
+   attr). `extras.ts` derives each sibling id from the tide entity id by
+   swapping the `_tide` suffix — entity ids are `sensor.<station>_<key>`
+   by the integration's contract. A missing or unavailable sibling is
+   skipped, so the option is a no-op on an older integration. Values are
+   *read*, not recomputed, per the "don't compute tides" rule; that also
+   means they inherit open-tides#16 staleness. Length states honour the
+   entity's `unit_of_measurement` (HA converts `distance` sensors for
+   display if the user picked a unit) before the card applies its own.
+
 3. **Events list** — the next N highs and lows as rows: kind, time (with
    weekday if not today), "in 2h 14m", height. Locale and unit from `hass`.
 
@@ -98,6 +111,7 @@ show_curve: true
 show_events: true
 events_count: 4
 height_unit: auto           # auto | m | ft — auto follows hass.config
+extras: []                  # subset of [range, rate, next_spring, next_neap]
 ```
 
 Out-of-range values are clamped, not rejected. The visual editor is an
@@ -117,8 +131,8 @@ Uses `--primary-color`, `--secondary-text-color`, `--card-background-color`,
 
 ## Behaviour
 
-- Re-renders on `hass` change only if the entity's state object identity
-  changed (HA state objects are immutable, so this is equivalent to
+- Re-renders on `hass` change only if the entity's (or a configured
+  sibling's) state object identity changed (HA state objects are immutable, so this is equivalent to
   `last_updated` changing and cheaper) or the locale changed.
 - A 60-second timer, aligned to the wall-clock minute, advances `now`.
   That re-derives state, "in 2h 14m", the now line, and the events list.

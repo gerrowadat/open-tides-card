@@ -36,6 +36,23 @@
     "height_unit": "Height unit",
     "unit_auto": "Follow Home Assistant",
     "unit_m": "Metres",
-    "unit_ft": "Feet"
+    "unit_ft": "Feet",
+    "extras": "Extras",
+    "extras_helper": "From the range, rate and spring/neap sensors (open_tides 0.3+)",
+    "extra_range": "Range",
+    "extra_rate": "Rate of rise / fall",
+    "extra_next_spring": "Next spring tide",
+    "extra_next_neap": "Next neap tide"
+  },
+  "extras": {
+    "range": "Range",
+    "rate": "Rate",
+    "next_spring": "Next spring",
+    "next_neap": "Next neap",
+    "range_span": "{min} – {max} ahead",
+    "range_of": "range {range}",
+    "rate_up": "rising",
+    "rate_down": "falling",
+    "rate_flat": "at the turn"
   }
 }

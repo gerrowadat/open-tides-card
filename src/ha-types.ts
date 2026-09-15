@@ -27,9 +27,17 @@ export interface HomeAssistant {
   language?: string;
 }
 
+/**
+ * Sibling entities of `sensor.<name>_tide` (open-tides ≥ 0.3.0) that the
+ * card can show as small stats. Keys are the integration's entity keys.
+ */
+export const EXTRA_KEYS = ["range", "rate", "next_spring", "next_neap"] as const;
+export type ExtraKey = (typeof EXTRA_KEYS)[number];
+
 export interface OpenTidesCardConfig {
   type: string;
   entity?: string;
+  extras?: ExtraKey[];
   name?: string;
   hours_ahead?: number;
   hours_back?: number;
@@ -42,6 +50,7 @@ export interface OpenTidesCardConfig {
 
 export interface ResolvedConfig {
   entity: string;
+  extras: ExtraKey[];
   name: string | null;
   hours_ahead: number;
   hours_back: number;
@@ -62,8 +71,12 @@ const clampInt = (v: unknown, lo: number, hi: number, dflt: number): number => {
 
 /** Apply defaults and clamp. `entity` may be empty; the card reports that. */
 export function resolveConfig(c: OpenTidesCardConfig): ResolvedConfig {
+  const extras = Array.isArray(c.extras)
+    ? EXTRA_KEYS.filter((k) => (c.extras as unknown[]).includes(k))
+    : [];
   return {
     entity: typeof c.entity === "string" ? c.entity : "",
+    extras,
     name: typeof c.name === "string" && c.name ? c.name : null,
     hours_ahead: clampInt(c.hours_ahead, 1, MAX_HOURS, 36),
     hours_back: clampInt(c.hours_back, 0, MAX_HOURS, 6),

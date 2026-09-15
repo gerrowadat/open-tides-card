@@ -5,7 +5,7 @@
 
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 
-import { MAX_HOURS, type HomeAssistant, type OpenTidesCardConfig } from "./ha-types";
+import { EXTRA_KEYS, MAX_HOURS, type HomeAssistant, type OpenTidesCardConfig } from "./ha-types";
 import { localize } from "./i18n";
 
 type Schema = Array<Record<string, unknown>>;
@@ -19,6 +19,16 @@ function schema(hass: HomeAssistant | undefined): Schema {
       selector: { entity: { domain: "sensor", integration: "open_tides" } },
     },
     { name: "name", selector: { text: {} } },
+    {
+      name: "extras",
+      selector: {
+        select: {
+          multiple: true,
+          mode: "list",
+          options: EXTRA_KEYS.map((k) => ({ value: k, label: t(`extra_${k}`) })),
+        },
+      },
+    },
     {
       type: "grid",
       name: "",
@@ -63,6 +73,7 @@ function schema(hass: HomeAssistant | undefined): Schema {
 }
 
 const DEFAULTS: Required<Omit<OpenTidesCardConfig, "type" | "entity" | "name">> = {
+  extras: [],
   hours_ahead: 36,
   hours_back: 6,
   show_header: true,
@@ -105,6 +116,7 @@ export class OpenTidesCardEditor extends LitElement {
 
   private _helper = (s: { name: string }): string | undefined => {
     if (s.name === "name") return localize(this.hass, "editor.name_helper");
+    if (s.name === "extras") return localize(this.hass, "editor.extras_helper");
     if (s.name === "hours_ahead" || s.name === "hours_back")
       return localize(this.hass, "editor.hours_helper");
     return undefined;
@@ -118,6 +130,7 @@ export class OpenTidesCardEditor extends LitElement {
     for (const [k, v] of Object.entries(value)) {
       if (k === "type") continue;
       if (v === "" || v === undefined || v === null) continue;
+      if (Array.isArray(v) && v.length === 0) continue;
       if (k in DEFAULTS && (DEFAULTS as Record<string, unknown>)[k] === v) continue;
       config[k] = v;
     }

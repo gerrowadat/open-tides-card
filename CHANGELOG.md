@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- `extras` option: show `range`, `rate`, `next_spring`, `next_neap` from
+  the sibling sensors open-tides 0.3.0 adds. Opt-in, multi-select in the
+  editor; silently absent on older integrations.
+- Event rows no longer wrap long 12-hour times at narrow widths.
+
 ## 0.1.0 — 2026-09-14
 
 Tracks open-tides 0.2.0.

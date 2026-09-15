@@ -22,6 +22,7 @@ src/
   chart.ts                 SVG geometry, pure (no chart library, no DOM)
   tide.ts                  state / next event / interpolation, pure
   contract.ts              TS types mirroring open_tides attribute shape + parser
+  extras.ts                optional stats from sibling entities (range, rate, spring/neap)
   format.ts                Intl wrappers driven by hass.locale / hass.config
   ha-types.ts              slice of `hass` used; config defaults and clamps
   i18n/                    en.json + others

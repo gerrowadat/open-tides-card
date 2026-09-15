@@ -25,6 +25,7 @@ describe("resolveConfig", () => {
   it("applies defaults", () => {
     expect(resolveConfig({ type: "x" })).toEqual({
       entity: "",
+      extras: [],
       name: null,
       hours_ahead: 36,
       hours_back: 6,

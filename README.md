@@ -40,6 +40,7 @@ All options:
 type: custom:open-tides-card
 entity: sensor.dublin_port_tide
 name: Clontarf          # header title; default is the station name
+extras: []              # any of: range, rate, next_spring, next_neap (open_tides 0.3+)
 hours_ahead: 36         # 1–48 (the sensor carries 48 h)
 hours_back: 6           # 0–48; see "What you see" below
 show_header: true       # station, rising/falling, next event
@@ -60,6 +61,12 @@ Time format and time zone follow your HA profile settings.
   (or the station can't supply one) the line is a cosine drawn between the
   highs and lows instead and is **dashed** to say so; hover it for the
   note. Close enough to glance at, not to plan a launch by.
+- **Extras** (opt-in): small stats from the sibling sensors open_tides
+  0.3 creates next to the tide sensor — current **range** (with the
+  smallest and largest ranges in the forecast), **rate** of rise or fall
+  per hour, and the **next spring** and **next neap** tide with their
+  range. The card finds them by name (`sensor.<station>_range` etc.); if
+  one isn't there it's left out, so the option is harmless on 0.2.
 - **Upcoming**: kind, time, how long until, height.
 - **Footer**: the provider's attribution (linked to the licence) and the
   datum. Heights are relative to that datum and aren't comparable across
@@ -72,7 +79,9 @@ integration currently writes only on its refresh schedule (see
 [gerrowadat/open-tides#16](https://github.com/gerrowadat/open-tides/issues/16)),
 so the card works out rising/falling and the next event itself from the
 `events` list rather than trusting the sensor's state; once the forecast
-is entirely in the past it says so instead of guessing.
+is entirely in the past it says so instead of guessing. The extras
+(`range`, `rate`) are shown as the integration wrote them, so they share
+the same staleness until that issue is fixed.
 
 ## Theming
 

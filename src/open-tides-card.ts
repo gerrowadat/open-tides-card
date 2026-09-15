@@ -9,6 +9,7 @@ import { LitElement, css, html, nothing, svg, type PropertyValues, type Template
 import { buildChart, type ChartModel } from "./chart";
 import { parseTideEntity, type TideData, type TideEvent } from "./contract";
 import { OpenTidesCardEditor } from "./editor";
+import { readExtra, siblingEntityId, type ExtraStat } from "./extras";
 import {
   formatDayTime,
   formatDisplayHeight,
@@ -86,6 +87,7 @@ export class OpenTidesCard extends LitElement {
     if (!c) return 3;
     let px = 32; // card padding
     if (c.show_header) px += 64;
+    if (c.extras.length) px += 56;
     if (c.show_curve) px += CHART_HEIGHT + 8;
     if (c.show_events) px += 4 + c.events_count * 28;
     px += 22; // footer
@@ -149,9 +151,11 @@ export class OpenTidesCard extends LitElement {
   override shouldUpdate(changed: PropertyValues): boolean {
     if (changed.size === 1 && changed.has("hass")) {
       const old = changed.get("hass") as HomeAssistant | undefined;
-      const id = this._config?.entity;
-      if (!old || !id) return true;
-      return old.states[id] !== this.hass?.states[id] || old.locale !== this.hass?.locale;
+      const c = this._config;
+      if (!old || !c?.entity) return true;
+      if (old.locale !== this.hass?.locale) return true;
+      const ids = [c.entity, ...c.extras.map((k) => siblingEntityId(c.entity, k) ?? "")];
+      return ids.some((id) => old.states[id] !== this.hass?.states[id]);
     }
     return true;
   }
@@ -188,6 +192,7 @@ export class OpenTidesCard extends LitElement {
         <div class="card">
           ${banners}
           ${c.show_header ? this._header(title, data, now) : nothing}
+          ${c.extras.length ? this._extras(now) : nothing}
           ${c.show_curve && data.events.length > 1 ? this._chart(data, now) : nothing}
           ${c.show_events && data.events.length > 0 ? this._events(data, now) : nothing}
           ${this._footer(data)}
@@ -232,6 +237,36 @@ export class OpenTidesCard extends LitElement {
               </span>
             </div>`
           : nothing}
+      </div>
+    `;
+  }
+
+  private _extras(now: number): TemplateResult | typeof nothing {
+    const hass = this.hass!;
+    const c = this._config!;
+    const unit = heightUnit(c, hass);
+    const lang = language(hass);
+    const stats = c.extras
+      .map((k) => readExtra(hass, c.entity, k, now, unit, lang))
+      .filter((x): x is ExtraStat => x !== null);
+    if (stats.length === 0) return nothing;
+    return html`
+      <div class="extras">
+        ${stats.map(
+          (x) => html`
+            <div class="stat" title=${x.entityId}>
+              <div class="stat-label">${x.label}</div>
+              <div class="stat-value ${x.trend ?? ""}">
+                ${x.trend === "up"
+                  ? html`<ha-icon icon="mdi:arrow-up-thin"></ha-icon>`
+                  : x.trend === "down"
+                    ? html`<ha-icon icon="mdi:arrow-down-thin"></ha-icon>`
+                    : nothing}
+                ${x.value}
+              </div>
+              ${x.sub ? html`<div class="stat-sub">${x.sub}</div>` : nothing}
+            </div>`,
+        )}
       </div>
     `;
   }
@@ -426,6 +461,46 @@ export class OpenTidesCard extends LitElement {
       color: var(--secondary-text-color);
     }
 
+    /* extras */
+    .extras {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+    }
+    .stat {
+      flex: 1 1 120px;
+      min-width: 0;
+    }
+    .stat-label {
+      font-size: 0.75em;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--secondary-text-color);
+    }
+    .stat-value {
+      font-size: 1.1em;
+      font-weight: 500;
+      color: var(--primary-text-color);
+      font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .stat-value ha-icon {
+      --mdc-icon-size: 18px;
+      margin-left: -4px;
+    }
+    .stat-value.up ha-icon {
+      color: var(--otc-high);
+    }
+    .stat-value.down ha-icon {
+      color: var(--otc-low);
+    }
+    .stat-sub {
+      font-size: 0.8em;
+      color: var(--secondary-text-color);
+    }
+
     /* chart */
     .chart {
       width: 100%;
@@ -510,7 +585,7 @@ export class OpenTidesCard extends LitElement {
     }
     .row {
       display: grid;
-      grid-template-columns: 24px auto 1fr auto auto;
+      grid-template-columns: 24px auto auto 1fr auto;
       align-items: center;
       gap: 8px;
       padding: 4px 0;
@@ -534,14 +609,21 @@ export class OpenTidesCard extends LitElement {
     }
     .row .time {
       color: var(--secondary-text-color);
+      white-space: nowrap;
     }
     .row .rel {
       color: var(--secondary-text-color);
       font-size: 0.9em;
+      text-align: right;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .row .height {
       font-variant-numeric: tabular-nums;
       text-align: right;
+      white-space: nowrap;
     }
 
     /* footer */
